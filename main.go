@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"kotiki/cats"
 	"kotiki/handlers"
 	"kotiki/users"
 )
@@ -9,19 +11,30 @@ import (
 func main() {
 	r := gin.Default()
 
-	// 1. создаём репозиторий пользователей
+	// users
+
 	userRepo := users.NewInMemory()
-
-	// 2. создаём AuthService
 	authService := users.NewAuthService(userRepo)
-
-	// 3. создаём UserHandlers
 	userHandlers := handlers.NewUserHandlers(authService)
 
-	// 4. маршрут для регистрации
 	r.POST("/register", userHandlers.Register)
+	r.POST("/login", userHandlers.Login)
+	r.GET("/me", handlers.AuthRequired, userHandlers.Me)
 
-	// (/ping по приколу)
+	// cats
+
+	catRepo := cats.NewInMemory()
+	catHandlers := handlers.NewCatHandlers(catRepo)
+
+	// список котов (без авторизации пока)
+	r.GET("/cats", catHandlers.GetAllCat)
+
+	// to be done
+	// r.POST("/cats", handlers.AuthRequired, catHandlers.CreateCat)
+	// r.GET("/cats/:id", catHandlers.GetCat)
+	// r.DELETE("/cats/:id", handlers.AuthRequired, catHandlers.DeleteCat)
+
+	// тест
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "pong"})
 	})

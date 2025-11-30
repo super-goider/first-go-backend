@@ -49,3 +49,25 @@ func (s *AuthService) Register(req UserCreateRequest) (User, error) {
 
 	return created, nil
 }
+
+func (s *AuthService) Login(req UserLoginRequest) (User, error) {
+	if req.Login == "" {
+		return User{}, fmt.Errorf("login is empty")
+	}
+
+	// 2. проверка на занятость логина
+	u, found, err := s.repo.GetByLogin(req.Login)
+	if err != nil {
+		return User{}, err
+	}
+	if !found {
+		return User{}, fmt.Errorf("invalid login or password")
+	}
+
+	newErr := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(req.Password)) // первый аргумент это хеш, второй пароль
+	if newErr != nil {
+		return User{}, fmt.Errorf("invalid login or password")
+	}
+
+	return u, nil
+}

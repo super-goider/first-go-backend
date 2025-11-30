@@ -14,3 +14,8 @@ type UserCreateRequest struct {
 }
 
 // это DTO (Data Transfer Object) - структура, которая существует только для входящих или исходящих данных API
+
+type UserLoginRequest struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
