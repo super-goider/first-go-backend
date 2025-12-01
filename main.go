@@ -5,36 +5,58 @@ import (
 
 	"kotiki/cats"
 	"kotiki/handlers"
+	"kotiki/owners"
 	"kotiki/users"
 )
 
 func main() {
 	r := gin.Default()
 
-	// users
+	// repos
 
 	userRepo := users.NewInMemory()
+	catRepo := cats.NewInMemory()
+	ownerRepo := owners.NewInMemory()
+
+	// auth
+
 	authService := users.NewAuthService(userRepo)
+
+	// handlers
+
 	userHandlers := handlers.NewUserHandlers(authService)
+	catHandlers := handlers.NewCatHandlers(catRepo, ownerRepo)
+	ownerHandlers := handlers.NewOwnerHandlers(ownerRepo)
+
+	// users
 
 	r.POST("/register", userHandlers.Register)
 	r.POST("/login", userHandlers.Login)
 	r.GET("/me", handlers.AuthRequired, userHandlers.Me)
 
+	// owners
+
+	r.GET("/owners", ownerHandlers.GetAllOwners)
+	r.GET("/owners/:id", ownerHandlers.GetOwner)
+	r.POST("/owners", ownerHandlers.CreateOwner)
+	r.DELETE("/owners/:id", ownerHandlers.DeleteOwner)
+
 	// cats
 
-	catRepo := cats.NewInMemory()
-	catHandlers := handlers.NewCatHandlers(catRepo)
-
-	// список котов (без авторизации пока)
+	// список котов + фильтры ?breed=&owner=
 	r.GET("/cats", catHandlers.GetAllCat)
 
-	// to be done
-	// r.POST("/cats", handlers.AuthRequired, catHandlers.CreateCat)
-	// r.GET("/cats/:id", catHandlers.GetCat)
-	// r.DELETE("/cats/:id", handlers.AuthRequired, catHandlers.DeleteCat)
+	// создать кота (нужна авторизация и внутри CreateCat проверяется, что owner существует)
+	r.POST("/cats", handlers.AuthRequired, catHandlers.CreateCat)
 
-	// тест
+	// получить кота по id
+	r.GET("/cats/:id", catHandlers.GetCat)
+
+	// удалить кота (только авторизованный пользователь)
+	r.DELETE("/cats/:id", handlers.AuthRequired, catHandlers.DeleteCat)
+
+	// чек
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "pong"})
 	})

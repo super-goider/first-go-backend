@@ -24,9 +24,11 @@ func (h *UserHandlers) Register(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(201, user)
 
+	resp := users.ToUserResponse(user)
+	c.JSON(201, resp)
 }
+
 func (h *UserHandlers) Login(c *gin.Context) {
 	var req users.UserLoginRequest
 
@@ -42,7 +44,6 @@ func (h *UserHandlers) Login(c *gin.Context) {
 	}
 
 	sessionID, er := users.CreateSession(user.ID)
-
 	if er != nil {
 		c.JSON(400, gin.H{"error": "invalid session"})
 		return
@@ -50,7 +51,8 @@ func (h *UserHandlers) Login(c *gin.Context) {
 
 	c.SetCookie("session_id", sessionID, 3600, "/", "", false, true)
 
-	c.JSON(200, user)
+	resp := users.ToUserResponse(user)
+	c.JSON(200, resp)
 }
 
 func AuthRequired(c *gin.Context) {

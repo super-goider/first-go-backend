@@ -19,3 +19,17 @@ type UserLoginRequest struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }
+
+type UserResponse struct { // типа dto для исходящих данных чтобы не отдавать хеш пароля
+	ID    int    `json:"id"`
+	Login string `json:"login"`
+	Email string `json:"email"`
+}
+
+func ToUserResponse(u User) UserResponse {
+	return UserResponse{
+		ID:    u.ID,
+		Login: u.Login,
+		Email: u.Email,
+	}
+}
